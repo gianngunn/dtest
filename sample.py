@@ -10,6 +10,7 @@ client = MongoClient('mongodb://docker:mongopw@localhost:49153')
 db = client['DSAirlines']
 User = db['Users']
 Flight = db['Flights']
+Booking = db['Bookings']
 
 app = Flask(__name__)
 logedin = 0
@@ -139,4 +140,32 @@ def getFlight(location, destination, dateDe):
     return jsonify(x) 
     """to jsonify mporei na min xreiazetai"""     
 
-@app.route('/ticketBooking')
+@app.route('/ticketBooking/<string:UNF>/<string:name>/<string:passportNumber>/<string:creditcard>', methods=['POST'])
+def ticketBooking(UFN, name, passportNumber, creditcard):
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+    if UNF == None:
+        return Response("Bad request", status=400)
+    if name == None:
+        return Response("Bad request", status=400)
+    if passportNumber == None:
+        return Response("Bad request", status=400)
+    if creditcard == None:
+        return Response("Bad request", status=400)
+
+    if len(creditcard) != 16:
+        return Response("creditcard must be of size 16", status=404)
+
+    flight = Flight.find_one({'uniqueFN': UFN})
+    
+    booking = {
+        'flightInfo': flight,
+        'bookingCreatedAt': datetime.now(),
+        'user': logedinUser['email']
+    }
+    booking.insert_one(booking)
+
+    flight['availability'] = flight['availability'] - 1
+    """?"""
+    return Response(booking, status=201)
