@@ -200,8 +200,38 @@ def deleteBooking(bookingID):
         x = Booking.find_one({'_id': bookingID})
 
         Booking.delete_one({'_id': bookingID})
-        return Response('Booking deleted! the money will be returned to card number: ',x['credidcardUsed'], status=200)
+        return Response('Booking deleted! the money will be returned to card number: ',x['credidcardUsed'], status=200) #?
     else:
         return Response('no booking with that ID', status=404)
+
+@app.route('/getAllBookings/<string:order>', methods=['GET'])
+def getAllBookings(order):
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+    if order == 'asc':
+        bookings = Booking.find({'user': logedinUser['_id']}).sort(
+            'bookingCreatedAt', pymongo.ASCENDING)
+        x = []
+        for g in bookings:
+            g['_id'] = None
+            g['user'] = logedinUser['username']
+            x.append(g)
+
+        if x == []:
+            return Response("no bookings", status=404)
+        return jsonify(x)
+    if order == 'des':
+        bookings = Booking.find({'user': logedinUser['_id']}).sort(
+            'bookingCreatedAt', pymongo.DESCENDING)
+        x = []
+        for g in bookings:
+            g['_id'] = None
+            g['user'] = logedinUser['username']
+            x.append(g)
+
+        if x == []:
+            return Response("no bookings", status=404)
+        return jsonify(x)
 
 
