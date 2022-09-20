@@ -186,3 +186,19 @@ def getBooking(bookingID):
         return jsonify(booking)
     else:
         return Response('no booking with that ID', status=404)
+
+@app.route('/deleteBooking/<string:bookingID>', methods=['DELETE'])
+def deleteBooking(bookingID):
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+    
+    booking = Booking.find_one({'_id': bookingID, 'user': logedinUser['email']})
+
+    if booking != None:
+        Booking.delete_one({'_id': bookingID})
+        return Response("Booking deleted!", status=200)
+    else:
+        return Response('no booking with that ID', status=404)
+
+
