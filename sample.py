@@ -159,6 +159,9 @@ def ticketBooking(UFN, name, passportNumber, creditcard):
 
     flight = Flight.find_one({'uniqueFN': UFN})
     
+    if flight['availability'] == 0:
+        return Response('flight is full', status=404)
+
     booking = {
         'flightInfo': flight,
         'bookingCreatedAt': datetime.now(),
@@ -167,5 +170,19 @@ def ticketBooking(UFN, name, passportNumber, creditcard):
     booking.insert_one(booking)
 
     flight['availability'] = flight['availability'] - 1
-    #?
+    #?mporei na thelei jsonify
     return Response(booking, status=201)
+
+@app.route('/getBooking/<string:bookingID>', methods=['GET'])
+def getBooking(bookingID):
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+    if bookingID == None:
+        return Response("Bad request", status=400)
+    
+    booking = Booking.find_one({'_id': bookingID, 'user': logedinUser['email']})
+    if booking != None:
+        return jsonify(booking)
+    else:
+        return Response('no booking with that ID', status=404)
