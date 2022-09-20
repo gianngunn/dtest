@@ -145,7 +145,7 @@ def ticketBooking(UFN, name, passportNumber, creditcard):
     global logedin, logedinUser
     if logedin == 0 or logedinUser == None:
         return Response("login first!!", status=404)
-    if UNF == None:
+    if UFN == None:
         return Response("Bad request", status=400)
     if name == None:
         return Response("Bad request", status=400)
