@@ -165,7 +165,8 @@ def ticketBooking(UFN, name, passportNumber, creditcard):
     booking = {
         'flightInfo': flight,
         'bookingCreatedAt': datetime.now(),
-        'user': logedinUser['email']
+        'user': logedinUser['email'],
+        'creditcardUsed': creditcard
     }
     booking.insert_one(booking)
 
@@ -196,9 +197,11 @@ def deleteBooking(bookingID):
     booking = Booking.find_one({'_id': bookingID, 'user': logedinUser['email']})
 
     if booking != None:
+        x = Booking.find_one({'_id': bookingID})
+
         Booking.delete_one({'_id': bookingID})
-        return Response("Booking deleted!", status=200)
-    else:
+        return Response('Booking deleted! the money will be returned to card number', status=200)
+        else:
         return Response('no booking with that ID', status=404)
 
 
