@@ -166,6 +166,8 @@ def ticketBooking(UFN, name, passportNumber, creditcard):
         'flightInfo': flight,
         'bookingCreatedAt': datetime.now(),
         'user': logedinUser['email'],
+        'userPassport': passportNumber,
+        'bookingCost': flight['cost'],
         'creditcardUsed': creditcard
     }
     booking.insert_one(booking)
