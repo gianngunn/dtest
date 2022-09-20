@@ -216,7 +216,7 @@ def getAllBookings(order):
             'bookingCreatedAt', pymongo.ASCENDING)
         x = []
         for g in bookings:
-            g['_id'] = None
+            #g['_id'] = None
             g['user'] = logedinUser['username']
             x.append(g)
 
@@ -228,7 +228,7 @@ def getAllBookings(order):
             'bookingCreatedAt', pymongo.DESCENDING)
         x = []
         for g in bookings:
-            g['_id'] = None
+            #g['_id'] = None
             g['user'] = logedinUser['username']
             x.append(g)
 
@@ -236,4 +236,44 @@ def getAllBookings(order):
             return Response("no bookings", status=404)
         return jsonify(x)
 
+@app.route('/getCheapestAndMostExpensiveBooking', methods=['GET'])
+def getCheapestOrMostExpensiveBooking(kind):
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
 
+    
+    bookings = Booking.find({'user': logedinUser['_id']}).sort(
+        'bookingCost', pymongo.ASCENDING)
+    x = []
+    for g in bookings:
+        #g['_id'] = None
+        g['user'] = logedinUser['username']
+        x.append(g)
+
+    if x == []:
+        return Response("no bookings", status=404)
+
+    for j in x:
+        if x[0]['bookingCost'] == j['bookingCost']:
+            if x[0]['bookingCreatedAt'] < j['bookingCreatedAt']:
+                x[0] = j
+    
+    bookings = Booking.find({'user': logedinUser['_id']}).sort(
+        'bookingCost', pymongo.DESCENDING)
+    k = []
+    for g in bookings:
+        #g['_id'] = None
+        g['user'] = logedinUser['username']
+        k.append(g)
+
+    if k == []:
+        return Response("no bookings", status=404)
+    for j in k:
+        if k[0]['bookingCost'] == j['bookingCost']:
+            if k[0]['bookingCreatedAt'] < j['bookingCreatedAt']:
+                k[0] = j
+    
+    # x,k==[] mporei na ginei if bookings == None -> return...
+    return x[0],k[0]
+#theloume elegxo gia otan eiai 1 booking
