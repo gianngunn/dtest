@@ -40,7 +40,7 @@ def register():
             if User.count_documents({'passpordNumber': data['passpordNumber']}) == 0:
                 if len('password') < 8:
                     return Response("password needs to be 8 length and bigger, try again", status=200)
-                if any(i.isdigit() for i in 'passowrd') == False:
+                if any(i.isdigit() for i in 'password') == False:
                     return Response("password must contain a number", status=200) 
                 """
                 thelei kai gia akribos 1 arimtho?
@@ -89,7 +89,7 @@ def login():
 
     if data == None:
         return Response("bad request", status=500)
-    # thelei ftiajimo 1 if gia mail kai pass kai mia gia username kai pass
+    
     if not 'email' in data and not 'username' in data or not 'password' in data:
         return Response("Information incompleted", status=500)
 
@@ -138,7 +138,7 @@ def getFlight(location, destination, dateDe):
     if x == []:
         return Response("no flights", status=404)
     return jsonify(x) 
-    """to jsonify mporei na min xreiazetai"""     
+    #to jsonify mporei na min xreiazetai    
 
 @app.route('/ticketBooking/<string:UNF>/<string:name>/<string:passportNumber>/<string:creditcard>', methods=['POST'])
 def ticketBooking(UFN, name, passportNumber, creditcard):
@@ -167,5 +167,5 @@ def ticketBooking(UFN, name, passportNumber, creditcard):
     booking.insert_one(booking)
 
     flight['availability'] = flight['availability'] - 1
-    """?"""
+    #?
     return Response(booking, status=201)
