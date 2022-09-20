@@ -200,8 +200,8 @@ def deleteBooking(bookingID):
         x = Booking.find_one({'_id': bookingID})
 
         Booking.delete_one({'_id': bookingID})
-        return Response('Booking deleted! the money will be returned to card number', status=200)
-        else:
+        return Response('Booking deleted! the money will be returned to card number: ',x['credidcardUsed'], status=200)
+    else:
         return Response('no booking with that ID', status=404)
 
 
