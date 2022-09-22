@@ -297,4 +297,5 @@ def getBookingsBasedOnDest(dest):
 
     if allbookings == None:
         return Response("you dont have bookings for this destination!!", status=404)
-        
+
+    return allbookings
