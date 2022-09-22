@@ -350,10 +350,10 @@ def accountActivation():
     if data == None:
         return Response("bad request", status=400)
 
-     if not 'activationNumber' in data or not 'email' in data or not 'username' in data or not 'password' in data:
+     if not 'activationNumber' in data or not 'passportNumber' in data:
         return Response('information incomplite', status= 400)
     
-    user = User.find_one({'email': data['email'], 'username': data['username'], 'password': data['password']})
+    user = User.find_one({'passportNumber': data['passportNumber']})
 
     if user['activeUser'] == "no":
         if user['activationNumber'] == data['activationNumber']:
