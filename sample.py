@@ -163,7 +163,8 @@ def ticketBooking(UFN, name, passportNumber, creditcard):
         return Response('flight is full', status=404)
 
     booking = {
-        'flightInfo': flight,
+        'departure': flight['location'], 
+        'destination': flight['destination'],
         'bookingCreatedAt': datetime.now(),
         'user': logedinUser['email'],
         'userPassport': passportNumber,
@@ -217,7 +218,7 @@ def getAllBookings(order):
         x = []
         for g in bookings:
             #g['_id'] = None
-            g['user'] = logedinUser['username']
+            #g['user'] = logedinUser['username']
             x.append(g)
 
         if x == []:
@@ -229,7 +230,7 @@ def getAllBookings(order):
         x = []
         for g in bookings:
             #g['_id'] = None
-            g['user'] = logedinUser['username']
+            #g['user'] = logedinUser['username']
             x.append(g)
 
         if x == []:
@@ -237,7 +238,7 @@ def getAllBookings(order):
         return jsonify(x)
 
 @app.route('/getCheapestAndMostExpensiveBooking', methods=['GET'])
-def getCheapestOrMostExpensiveBooking(kind):
+def getCheapestOrMostExpensiveBooking():
     global logedin, logedinUser
     if logedin == 0 or logedinUser == None:
         return Response("login first!!", status=404)
@@ -248,7 +249,7 @@ def getCheapestOrMostExpensiveBooking(kind):
     x = []
     for g in bookings:
         #g['_id'] = None
-        g['user'] = logedinUser['username']
+        #g['user'] = logedinUser['username']
         x.append(g)
 
     if x == []:
@@ -264,7 +265,7 @@ def getCheapestOrMostExpensiveBooking(kind):
     k = []
     for g in bookings:
         #g['_id'] = None
-        g['user'] = logedinUser['username']
+        #g['user'] = logedinUser['username']
         k.append(g)
 
     if k == []:
@@ -275,5 +276,25 @@ def getCheapestOrMostExpensiveBooking(kind):
                 k[0] = j
     
     # x,k==[] mporei na ginei if bookings == None -> return...
+    #theloume elegxo gia otan eiai 1 booking?
+    """
+    if x[0] == k[0]:
+        return Response("you have only 1 booking", x[0])
+    
+    """
     return x[0],k[0]
-#theloume elegxo gia otan eiai 1 booking
+
+@app.route('/getBookingsBasedOnDest/<string:dest>', methods=['GET'])
+def getBookingsBasedOnDest(dest):
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+
+    if dest == None:
+        return Response("fill the destination!!", status=404)
+
+    allbookings = Booking.find({'user': logedinUser['email'], 'destination': dest})
+
+    if allbookings == None:
+        return Response("you dont have bookings for this destination!!", status=404)
+        
