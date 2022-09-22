@@ -4,6 +4,7 @@ from flask import Flask, request, Response, jsonify
 from datetime import datetime
 import json
 import re
+import random
 
 client = MongoClient('mongodb://docker:mongopw@localhost:49153')
 
@@ -67,7 +68,9 @@ def register():
                     'lastname': data['lastname'],
                     'password': data['password'],
                     'passpordNumber': data['passpordNumber'],
-                    'role': 'Απλός Χρήστης'
+                    'role': "Απλός Χρήστης",
+                    'activeUser': "yes",
+                    'activationNumber': None
                 }
                 User.insert_one(user)
                 return Response("User successfully registered!!", status=201)
@@ -102,6 +105,9 @@ def login():
         logedinUser = None
         logedin = 0
         return Response("you must register first in order to log in, if you are admin use email only", status=404)
+    
+    if user['activeUser'] == 'no':
+        return Response('your account is not active. activete it first, go to /accountActivation', status=404)
 
     if user['password'] == data['password']:
         logedinUser = user
@@ -299,3 +305,67 @@ def getBookingsBasedOnDest(dest):
         return Response("you dont have bookings for this destination!!", status=404)
 
     return allbookings
+
+@app.route('/deactivateAccount', methods=['PATCH'])
+def deactivateAccount():
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+    
+    #User.update_one({'email':logedinUser['email']}, {'$set': {'activeUser': "no"}})
+
+    n = random.randint(100000000000,999999999999)
+
+    users = User.find({'activeUser': "no"})
+    """j = 0
+    for g in users:
+        if n == users['activationNumber']:
+            if n == 999999999999:
+                n = n - 1 
+            else:
+                n = n + 1
+
+                 OR
+
+                while users.count_documents({'activationNumber': n}) != 0:
+                    if n == 999999999999:
+                        n = 100000000000 
+                    else:
+                        n = n + 1
+                        #this is better i think
+
+                """
+    User.update_one({'email':logedinUser['email']}, {'$set': {'activeUser': "no", 'activationNumber: n'}})
+
+    return Response("you acc has been deactivated this is your reset code " ,n, status=200)
+@app.route('/accountActivation', methods=['PATCH'])
+def accountActivation():
+     data = None
+
+    try:
+        data = json.loads(request.data)
+    except Exception as e:
+        return Response("bad json content", status=400)
+
+    if data == None:
+        return Response("bad request", status=400)
+
+     if not 'activationNumber' in data or not 'email' in data or not 'username' in data or not 'password' in data:
+        return Response('information incomplite', status= 400)
+    
+    user = User.find_one({'email': data['email'], 'username': data['username'], 'password': data['password']})
+
+    if user['activeUser'] == "no":
+        if user['activationNumber'] == data['activationNumber']:
+            User.update_one({'email':data['emai']},{
+                '$set': {'activeUser': "yes", 'activationNumber': None}
+            })
+            return Response("account activated", status=200)
+        else:
+            return Response("wrong activation number", status=404)
+    else:
+        return Response("your account is active", status=200)
+
+
+
+      
