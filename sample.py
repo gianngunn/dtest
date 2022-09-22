@@ -367,5 +367,27 @@ def accountActivation():
         return Response("your account is active", status=200)
 
 
+@app.route('/changepassA', methods=['PATCH'])
+def changepassA():
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+    data = None
 
-      
+    try:
+        data = json.loads(request.data)
+    except Exception as e:
+        return Response("bad json content", status=400)
+
+    if data == None:
+        return Response("bad request", status=400)
+    
+    if 'password' not in data:
+        return Response('wrong data', status= 400)
+    
+    if logedinUser['role'] == 'admin':
+        User.update_one({'email': logedinUser['email']}, {
+                        '$set': {'password': data['password'], 'changedPass': 'yes'}})
+        return Response('Pass changed!!', status=200)
+    else:
+        return Response('go back', status=405)
