@@ -485,6 +485,37 @@ def changeCost():
          
     else: 
         return Response('This is for admins only!!', status=405)
+
+@app.route('/deleteFlight', methods=['DELETE'])
+def deleteFlight():
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+
+    if logedinUser['role'] == 'admin':
+        data = None
+
+        try:
+            data = json.loads(request.data)
+        except Exception as e:
+            return Response("bad json content", status=400)
+
+        if data == None:
+            return Response("bad request", status=400)
+        
+        if not 'uniqueFN' in data:
+            return Response("Information incompleted", status=500)
+
+        flight = Flight.find_one({'uniqueFN': data['uniqueFN']})
+        
+        if flight == None:
+            return Response('flight not found', status=404)
+        
+        Flight.delete_one({'uniqueFN': data['uniqueFN']})
+        return Response('flight deleted', status=200)
+    else:
+        return Response('This is for admins only!!', status=405)
+
 @app.route('/changepassA', methods=['PATCH'])
 def changepassA():
     global logedin, logedinUser
