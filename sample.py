@@ -515,6 +515,7 @@ def deleteFlight():
         return Response('flight deleted', status=200)
     else:
         return Response('This is for admins only!!', status=405)
+        #thelei na diagrafonte kai oi kratiseis? an kai den leei
 
 @app.route('/changepassA', methods=['PATCH'])
 def changepassA():
@@ -540,3 +541,17 @@ def changepassA():
         return Response('Pass changed!!', status=200)
     else:
         return Response('go back', status=405)
+
+@app.route('/logout', methods=['GET'])
+def logout():
+
+    global logedin
+    global logedinUser
+
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+
+    logedin = 0
+    logedinUser = None
+
+    return Response("loged out!!", status=200)
