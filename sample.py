@@ -438,7 +438,8 @@ def createNewFlight():
                 'destination': data['destination'],
                 'cost': data['cost'],
                 'flightDuration': data['flightDuration'],
-                'uniqueFN': UFN
+                'uniqueFN': UFN,
+                'availability': 220
             }
             Flight.insert_one(flight)
             return Response('Flight created!', status=200)
