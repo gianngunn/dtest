@@ -1,7 +1,7 @@
 import pymongo
 from pymongo import MongoClient
 from flask import Flask, request, Response, jsonify
-from datetime import datetime
+from datetime import _Time, datetime
 import json
 import re
 import random
@@ -167,8 +167,9 @@ def ticketBooking(UFN, name, passportNumber, creditcard):
     
     if flight['availability'] == 0:
         return Response('flight is full', status=404)
-
+    idb=datetime.now().strftime('%Y%m%d%H%M%S')
     booking = {
+        'bookingID': idb # ebala auto edw giati mporei na uparxei problima me tin emfanisi tou _id opote opote einai na ginei emfanisi na ginete to _id = none alla ama ginei auto tha prepei na allajoun ta upoloipa '_id' me 'bookingID'
         'departure': flight['location'], 
         'destination': flight['destination'],
         'bookingCreatedAt': datetime.now(),
@@ -177,7 +178,7 @@ def ticketBooking(UFN, name, passportNumber, creditcard):
         'bookingCost': flight['cost'],
         'creditcardUsed': creditcard
     }
-    booking.insert_one(booking)
+    Booking.insert_one(booking)
 
     flight['availability'] = flight['availability'] - 1
     #?mporei na thelei jsonify
@@ -191,7 +192,7 @@ def getBooking(bookingID):
     if bookingID == None:
         return Response("Bad request", status=400)
     
-    booking = Booking.find_one({'_id': bookingID, 'user': logedinUser['email']})
+    booking = Booking.find_one({'_id': bookingID, 'user': logedinUser['email']}) #*
     if booking != None:
         return jsonify(booking)
     else:
@@ -203,12 +204,12 @@ def deleteBooking(bookingID):
     if logedin == 0 or logedinUser == None:
         return Response("login first!!", status=404)
     
-    booking = Booking.find_one({'_id': bookingID, 'user': logedinUser['email']})
+    booking = Booking.find_one({'_id': bookingID, 'user': logedinUser['email']}) #*
 
     if booking != None:
-        x = Booking.find_one({'_id': bookingID})
+        x = Booking.find_one({'_id': bookingID}) #*
 
-        Booking.delete_one({'_id': bookingID})
+        Booking.delete_one({'_id': bookingID}) #*
         return Response('Booking deleted! the money will be returned to card number: ',x['credidcardUsed'], status=200) #?
     else:
         return Response('no booking with that ID', status=404)
@@ -355,6 +356,9 @@ def accountActivation():
     
     user = User.find_one({'passportNumber': data['passportNumber']})
 
+    if user == None:
+        return Response("No user!!", status=404)
+
     if user['activeUser'] == "no":
         if user['activationNumber'] == data['activationNumber']:
             User.update_one({'email':data['emai']},{
@@ -365,6 +369,87 @@ def accountActivation():
             return Response("wrong activation number", status=404)
     else:
         return Response("your account is active", status=200)
+
+@app.route('/newAdmin', methods=['POST'])
+def newAdmin():
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+    if logedinUser['role'] == 'admin':
+        data = None
+
+        try:
+            data = json.loads(request.data)
+        except Exception as e:
+            return Response("bad json content", status=400,)
+
+        if data == None:
+            return Response("bad request", status=400)
+
+        if User.count_documents({'email': data['email']}) == 0:
+
+            admin = {
+                'name': data['name'],
+                'email': data['email'],
+                'password': data['password'],
+                'role': 'admin',
+                'changedPass': 'no'
+            }
+            User.insert_one(admin)
+            return Response("Admin successfully registered!!", status=201)
+
+        else:
+            return Response("email is used, try another one", status=200)
+    else:
+        return Response('This is for admins only!!', status=405)
+
+@app.route('/createNewFlight', methods=['POST'])
+def createNewFlight():
+    global logedin, logedinUser
+    if logedin == 0 or logedinUser == None:
+        return Response("login first!!", status=404)
+    if logedinUser['role'] == 'admin':
+        data = None
+
+        try:
+            data = json.loads(request.data)
+        except Exception as e:
+            return Response("bad json content", status=400,)
+
+        if data == None:
+            return Response("bad request", status=400)
+        
+        if not 'departure' in data or not 'destination' in data or not 'cost' in data or not 'flightDuration' in data or not 'date' in data:
+            return Response("Information incompleted", status=500)
+
+        Dep = data['departure'][0]
+        Des = data['destination'][0]
+        Year = data['date'].strftime("%Y")[2:3]
+        M = data['date'].strftime("%m")
+        Day = data['date'].strftime("%d")
+        Time = data['date'].strftime("%H")
+
+        UFN = Dep+Des+Year+M+Day+Time
+
+        if Flight.count_documents({'uniqueFN': UFN}) == 0:
+            flight = {
+                'DateAndTime': data['date'],
+                'departure': data['departure'],
+                'destination': data['destination'],
+                'cost': data['cost'],
+                'flightDuration': data['flightDuration'],
+                'uniqueFN': UFN
+            }
+            Flight.insert_one(flight)
+            return Response('Flight created!', status=200)
+        else:
+            return Response('this flight existes', status=404)
+
+
+        
+            
+    else:
+        return Response('This is for admins only!!', status=405)    
 
 
 @app.route('/changepassA', methods=['PATCH'])
